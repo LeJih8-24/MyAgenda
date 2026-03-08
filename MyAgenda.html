@@ -44,10 +44,15 @@
             cursor: pointer;
             font-weight: bold;
             margin: 5px 0;
+            transition: background-color 0.2s;
         }
         button:hover { background-color: #2980b9; }
+        
+        /* Boutons d'action spécifiques */
         button.danger { background-color: #e74c3c; margin-top: 30px; }
         button.danger:hover { background-color: #c0392b; }
+        button.success { background-color: #27ae60; margin-top: 15px; font-size: 1.1em;}
+        button.success:hover { background-color: #2ecc71; }
 
         /* Style des cartes bénévoles */
         #cards-container {
@@ -113,14 +118,21 @@
             font-size: 0.8em;
         }
 
+        /* Conteneurs du bas */
+        .bottom-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 20px;
+        }
+
         /* Compteur d'heures */
         .hours-container {
-            margin-top: 30px;
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 400px;
+            width: 400px;
         }
         ul { list-style-type: none; padding: 0; }
         li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
@@ -171,20 +183,87 @@
         </tbody>
     </table>
 
-    <div class="hours-container">
-        <h2>⏱️ Heures cumulées</h2>
-        <ul id="volunteer-hours">
-            <li><em>Aucun bénévole assigné.</em></li>
-        </ul>
-    </div>
+    <button class="success" onclick="exportToCSV()">📥 Exporter en Excel (CSV)</button>
 
-    <button class="danger" onclick="resetAgenda()">🗑️ Tout réinitialiser (Nouvel événement)</button>
+    <div class="bottom-actions">
+        <div class="hours-container">
+            <h2>⏱️ Heures cumulées</h2>
+            <ul id="volunteer-hours">
+                <li><em>Aucun bénévole assigné.</em></li>
+            </ul>
+        </div>
+        
+        <button class="danger" onclick="resetAgenda()">🗑️ Tout réinitialiser</button>
+    </div>
 
     <script>
         let volunteerHours = {};
-        let volunteerList = []; // Liste des cartes créées
+        let volunteerList = [];
 
-        // --- GESTION DES CARTES BÉNÉVOLES ---
+        // --- EXPORTATION CSV (EXCEL) ---
+        function exportToCSV() {
+            let csv = [];
+            // Ajout du BOM pour qu'Excel lise correctement les accents (UTF-8)
+            let csvString = "\uFEFF"; 
+
+            // 1. Récupération des en-têtes (Horaires)
+            let headerCols = document.querySelectorAll("#header-row th");
+            let rowData = [];
+            for (let j = 0; j < headerCols.length; j++) {
+                // On remplace les guillemets potentiels pour éviter les bugs Excel
+                let data = headerCols[j].innerText.replace(/"/g, '""');
+                rowData.push('"' + data + '"');
+            }
+            csv.push(rowData.join(";")); // Séparateur point-virgule pour Excel France
+
+            // 2. Récupération du corps du tableau (Tâches + Bénévoles)
+            let rows = document.querySelectorAll("#agenda-body tr");
+            for (let i = 0; i < rows.length; i++) {
+                let rowData = [];
+                
+                // La tâche (en-tête de ligne)
+                let th = rows[i].querySelector("th");
+                let thData = th.innerText.replace(/"/g, '""');
+                rowData.push('"' + thData + '"');
+
+                // Les cases (Bénévoles)
+                let cols = rows[i].querySelectorAll("td");
+                for (let j = 0; j < cols.length; j++) {
+                    // .textContent prend le texte brut (sans le "Glisser ici" généré en CSS)
+                    let data = cols[j].textContent.replace(/"/g, '""');
+                    rowData.push('"' + data + '"');
+                }
+                csv.push(rowData.join(";"));
+            }
+
+            // 3. Ajout du récapitulatif des heures à la fin du fichier
+            csv.push(""); // Ligne vide
+            csv.push('"BILAN DES HEURES"');
+            let volunteers = Object.keys(volunteerHours);
+            if (volunteers.length > 0) {
+                volunteers.sort().forEach(vol => {
+                    csv.push('"' + vol + '";"' + volunteerHours[vol] + ' heure(s)"');
+                });
+            } else {
+                csv.push('"Aucun bénévole"');
+            }
+
+            // 4. Assemblage et téléchargement
+            csvString += csv.join("\n");
+            let blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+            let link = document.createElement("a");
+            let url = URL.createObjectURL(blob);
+            
+            link.setAttribute("href", url);
+            link.setAttribute("download", "planning_benevoles.csv");
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- RESTE DU CODE (Inchangé) ---
 
         function handleEnter(event) {
             if (event.key === "Enter") createVolunteerCard();
@@ -194,7 +273,6 @@
             const volName = name || document.getElementById('new-vol-name').value.trim();
             if (!volName) return;
 
-            // Ajoute à la liste si ce n'est pas un doublon
             if (!volunteerList.includes(volName)) {
                 volunteerList.push(volName);
             }
@@ -206,7 +284,7 @@
 
         function renderCards() {
             const container = document.getElementById('cards-container');
-            container.innerHTML = ''; // Vider avant de recréer
+            container.innerHTML = ''; 
 
             volunteerList.forEach(vol => {
                 const card = document.createElement('div');
@@ -214,7 +292,6 @@
                 card.draggable = true;
                 card.textContent = vol;
                 
-                // Ce qui se passe quand on commence à glisser la carte
                 card.ondragstart = function(event) {
                     event.dataTransfer.setData("text/plain", vol);
                 };
@@ -231,32 +308,27 @@
             }
         }
 
-        // --- GESTION DU GLISSER-DÉPOSER (DRAG & DROP) DANS LE TABLEAU ---
-
         function allowDrop(event) {
-            event.preventDefault(); // Autorise le dépôt
-            event.target.classList.add('drag-over'); // Effet visuel au survol
+            event.preventDefault(); 
+            event.target.classList.add('drag-over'); 
         }
 
         function dragLeave(event) {
-            event.target.classList.remove('drag-over'); // Retire l'effet visuel
+            event.target.classList.remove('drag-over'); 
         }
 
         function dropVolunteer(event, cell) {
             event.preventDefault();
             cell.classList.remove('drag-over');
             
-            // Récupère le nom de la carte glissée
             const newVolunteer = event.dataTransfer.getData("text/plain");
             const currentVolunteer = cell.textContent;
 
-            // Si la case contenait déjà quelqu'un, on lui retire 1h
             if (currentVolunteer && volunteerHours[currentVolunteer]) {
                 volunteerHours[currentVolunteer]--;
                 if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
             }
 
-            // Assigne le nouveau et ajoute 1h
             cell.textContent = newVolunteer;
             volunteerHours[newVolunteer] = (volunteerHours[newVolunteer] || 0) + 1;
 
@@ -264,24 +336,20 @@
             saveData();
         }
 
-        // --- RETIRER UN BÉNÉVOLE D'UNE CASE ---
-
         function removeVolunteer(cell) {
             const currentVolunteer = cell.textContent;
-            if (!currentVolunteer) return; // Case vide, on ne fait rien
+            if (!currentVolunteer) return;
 
             if(confirm(`Retirer ${currentVolunteer} de cette case ?`)) {
                 if (volunteerHours[currentVolunteer]) {
                     volunteerHours[currentVolunteer]--;
                     if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
                 }
-                cell.textContent = ""; // Vide la case
+                cell.textContent = ""; 
                 updateHoursDisplay();
                 saveData();
             }
         }
-
-        // --- FONCTIONS EXISTANTES MISES À JOUR ---
 
         function addTimeColumn() {
             const timeSlot = prompt("Entrez la nouvelle plage horaire (ex: 20h - 21h) :");
@@ -296,7 +364,6 @@
             for (let row of body.rows) {
                 const newTd = document.createElement("td");
                 newTd.className = "assignable";
-                // NOUVEAU : On ajoute les propriétés de glisser-déposer aux nouvelles cases
                 newTd.setAttribute('ondragover', 'allowDrop(event)');
                 newTd.setAttribute('ondragleave', 'dragLeave(event)');
                 newTd.setAttribute('ondrop', 'dropVolunteer(event, this)');
@@ -321,7 +388,6 @@
             for (let i = 1; i < numCols; i++) {
                 const td = document.createElement("td");
                 td.className = "assignable";
-                // NOUVEAU : On ajoute les propriétés de glisser-déposer
                 td.setAttribute('ondragover', 'allowDrop(event)');
                 td.setAttribute('ondragleave', 'dragLeave(event)');
                 td.setAttribute('ondrop', 'dropVolunteer(event, this)');
@@ -348,8 +414,6 @@
                 list.appendChild(li);
             });
         }
-
-        // --- SAUVEGARDE ET CHARGEMENT ---
 
         function saveData() {
             localStorage.setItem('agenda-header', document.getElementById('header-row').innerHTML);
