@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Bénévoles - Événementiel</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1, h2 { color: #2c3e50; }
+        
+        /* Section des contrôles et des cartes */
+        .top-section {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .controls-panel, .volunteers-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .controls-panel { flex: 1; min-width: 300px; }
+        .volunteers-panel { flex: 2; min-width: 300px; }
+
+        input[type="text"] {
+            padding: 9px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        button:hover { background-color: #2980b9; }
+        button.danger { background-color: #e74c3c; margin-top: 30px; }
+        button.danger:hover { background-color: #c0392b; }
+
+        /* Style des cartes bénévoles */
+        #cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            min-height: 40px;
+            padding: 10px;
+            background-color: #fdfefe;
+            border: 2px dashed #bdc3c7;
+            border-radius: 5px;
+        }
+        .volunteer-card {
+            padding: 8px 15px;
+            background-color: #e67e22;
+            color: white;
+            border-radius: 20px;
+            cursor: grab;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            user-select: none;
+        }
+        .volunteer-card:active { cursor: grabbing; }
+
+        /* Style du tableau */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 15px;
+            text-align: center;
+        }
+        th { background-color: #2c3e50; color: white; }
+        tbody th { background-color: #ecf0f1; color: #333; font-weight: bold; text-align: left; }
+        
+        /* Cellules où l'on peut déposer les cartes */
+        td.assignable {
+            transition: background-color 0.2s;
+            color: #d35400;
+            font-weight: bold;
+            min-width: 100px;
+        }
+        td.assignable.drag-over {
+            background-color: #fcf3cf;
+            border: 2px dashed #e67e22;
+        }
+        td.assignable:empty::before {
+            content: "Glisser ici";
+            color: #bdc3c7;
+            font-size: 0.85em;
+            font-weight: normal;
+        }
+        /* Curseur pour retirer un bénévole */
+        td.assignable:not(:empty) { cursor: pointer; }
+        td.assignable:not(:empty):hover::after {
+            content: " ✖";
+            color: #e74c3c;
+            font-size: 0.8em;
+        }
+
+        /* Compteur d'heures */
+        .hours-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-width: 400px;
+        }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+
+    <h1>📅 Planning Bénévoles</h1>
+    
+    <div class="top-section">
+        <div class="controls-panel">
+            <h2>⚙️ Structure du planning</h2>
+            <button onclick="addTimeColumn()">+ Ajouter une heure (Colonne)</button><br>
+            <button onclick="addTaskRow()">+ Ajouter une tâche (Ligne)</button>
+        </div>
+
+        <div class="volunteers-panel">
+            <h2>👥 Bénévoles Disponibles</h2>
+            <div>
+                <input type="text" id="new-vol-name" placeholder="Prénom du bénévole" onkeypress="handleEnter(event)">
+                <button onclick="createVolunteerCard()">Créer la carte</button>
+                <button onclick="clearVolunteerCards()" style="background-color: #7f8c8d; margin-left:10px;">Vider la liste</button>
+            </div>
+            <div id="cards-container">
+                </div>
+        </div>
+    </div>
+
+    <table id="agenda">
+        <thead>
+            <tr id="header-row">
+                <th>Tâches \ Horaires</th>
+                <th>18h - 19h</th>
+                <th>19h - 20h</th>
+            </tr>
+        </thead>
+        <tbody id="agenda-body">
+            <tr>
+                <th>Nourriture</th>
+                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
+                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
+            </tr>
+            <tr>
+                <th>Boisson</th>
+                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
+                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="hours-container">
+        <h2>⏱️ Heures cumulées</h2>
+        <ul id="volunteer-hours">
+            <li><em>Aucun bénévole assigné.</em></li>
+        </ul>
+    </div>
+
+    <button class="danger" onclick="resetAgenda()">🗑️ Tout réinitialiser (Nouvel événement)</button>
+
+    <script>
+        let volunteerHours = {};
+        let volunteerList = []; // Liste des cartes créées
+
+        // --- GESTION DES CARTES BÉNÉVOLES ---
+
+        function handleEnter(event) {
+            if (event.key === "Enter") createVolunteerCard();
+        }
+
+        function createVolunteerCard(name) {
+            const volName = name || document.getElementById('new-vol-name').value.trim();
+            if (!volName) return;
+
+            // Ajoute à la liste si ce n'est pas un doublon
+            if (!volunteerList.includes(volName)) {
+                volunteerList.push(volName);
+            }
+            
+            document.getElementById('new-vol-name').value = '';
+            renderCards();
+            saveData();
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = ''; // Vider avant de recréer
+
+            volunteerList.forEach(vol => {
+                const card = document.createElement('div');
+                card.className = 'volunteer-card';
+                card.draggable = true;
+                card.textContent = vol;
+                
+                // Ce qui se passe quand on commence à glisser la carte
+                card.ondragstart = function(event) {
+                    event.dataTransfer.setData("text/plain", vol);
+                };
+                
+                container.appendChild(card);
+            });
+        }
+
+        function clearVolunteerCards() {
+            if(confirm("Effacer toutes les cartes de bénévoles ? (Le planning restera intact)")) {
+                volunteerList = [];
+                renderCards();
+                saveData();
+            }
+        }
+
+        // --- GESTION DU GLISSER-DÉPOSER (DRAG & DROP) DANS LE TABLEAU ---
+
+        function allowDrop(event) {
+            event.preventDefault(); // Autorise le dépôt
+            event.target.classList.add('drag-over'); // Effet visuel au survol
+        }
+
+        function dragLeave(event) {
+            event.target.classList.remove('drag-over'); // Retire l'effet visuel
+        }
+
+        function dropVolunteer(event, cell) {
+            event.preventDefault();
+            cell.classList.remove('drag-over');
+            
+            // Récupère le nom de la carte glissée
+            const newVolunteer = event.dataTransfer.getData("text/plain");
+            const currentVolunteer = cell.textContent;
+
+            // Si la case contenait déjà quelqu'un, on lui retire 1h
+            if (currentVolunteer && volunteerHours[currentVolunteer]) {
+                volunteerHours[currentVolunteer]--;
+                if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
+            }
+
+            // Assigne le nouveau et ajoute 1h
+            cell.textContent = newVolunteer;
+            volunteerHours[newVolunteer] = (volunteerHours[newVolunteer] || 0) + 1;
+
+            updateHoursDisplay();
+            saveData();
+        }
+
+        // --- RETIRER UN BÉNÉVOLE D'UNE CASE ---
+
+        function removeVolunteer(cell) {
+            const currentVolunteer = cell.textContent;
+            if (!currentVolunteer) return; // Case vide, on ne fait rien
+
+            if(confirm(`Retirer ${currentVolunteer} de cette case ?`)) {
+                if (volunteerHours[currentVolunteer]) {
+                    volunteerHours[currentVolunteer]--;
+                    if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
+                }
+                cell.textContent = ""; // Vide la case
+                updateHoursDisplay();
+                saveData();
+            }
+        }
+
+        // --- FONCTIONS EXISTANTES MISES À JOUR ---
+
+        function addTimeColumn() {
+            const timeSlot = prompt("Entrez la nouvelle plage horaire (ex: 20h - 21h) :");
+            if (!timeSlot) return; 
+
+            const headerRow = document.getElementById("header-row");
+            const newTh = document.createElement("th");
+            newTh.textContent = timeSlot;
+            headerRow.appendChild(newTh);
+
+            const body = document.getElementById("agenda-body");
+            for (let row of body.rows) {
+                const newTd = document.createElement("td");
+                newTd.className = "assignable";
+                // NOUVEAU : On ajoute les propriétés de glisser-déposer aux nouvelles cases
+                newTd.setAttribute('ondragover', 'allowDrop(event)');
+                newTd.setAttribute('ondragleave', 'dragLeave(event)');
+                newTd.setAttribute('ondrop', 'dropVolunteer(event, this)');
+                newTd.setAttribute('onclick', 'removeVolunteer(this)');
+                row.appendChild(newTd);
+            }
+            saveData();
+        }
+
+        function addTaskRow() {
+            const taskName = prompt("Entrez la nouvelle tâche (ex: Distribution) :");
+            if (!taskName) return; 
+
+            const body = document.getElementById("agenda-body");
+            const numCols = document.getElementById("header-row").children.length;
+
+            const newRow = document.createElement("tr");
+            const th = document.createElement("th");
+            th.textContent = taskName;
+            newRow.appendChild(th);
+
+            for (let i = 1; i < numCols; i++) {
+                const td = document.createElement("td");
+                td.className = "assignable";
+                // NOUVEAU : On ajoute les propriétés de glisser-déposer
+                td.setAttribute('ondragover', 'allowDrop(event)');
+                td.setAttribute('ondragleave', 'dragLeave(event)');
+                td.setAttribute('ondrop', 'dropVolunteer(event, this)');
+                td.setAttribute('onclick', 'removeVolunteer(this)');
+                newRow.appendChild(td);
+            }
+            body.appendChild(newRow);
+            saveData();
+        }
+
+        function updateHoursDisplay() {
+            const list = document.getElementById("volunteer-hours");
+            list.innerHTML = ""; 
+            
+            const volunteers = Object.keys(volunteerHours);
+            if (volunteers.length === 0) {
+                list.innerHTML = "<li><em>Aucun bénévole assigné.</em></li>";
+                return;
+            }
+
+            volunteers.sort().forEach(vol => {
+                const li = document.createElement("li");
+                li.innerHTML = `<span><strong>${vol}</strong></span> <span>${volunteerHours[vol]} heure(s)</span>`;
+                list.appendChild(li);
+            });
+        }
+
+        // --- SAUVEGARDE ET CHARGEMENT ---
+
+        function saveData() {
+            localStorage.setItem('agenda-header', document.getElementById('header-row').innerHTML);
+            localStorage.setItem('agenda-body', document.getElementById('agenda-body').innerHTML);
+            localStorage.setItem('volunteer-hours', JSON.stringify(volunteerHours));
+            localStorage.setItem('volunteer-list', JSON.stringify(volunteerList));
+        }
+
+        function loadData() {
+            if(localStorage.getItem('agenda-header')) {
+                document.getElementById('header-row').innerHTML = localStorage.getItem('agenda-header');
+            }
+            if(localStorage.getItem('agenda-body')) {
+                document.getElementById('agenda-body').innerHTML = localStorage.getItem('agenda-body');
+            }
+            if(localStorage.getItem('volunteer-hours')) {
+                volunteerHours = JSON.parse(localStorage.getItem('volunteer-hours'));
+                updateHoursDisplay();
+            }
+            if(localStorage.getItem('volunteer-list')) {
+                volunteerList = JSON.parse(localStorage.getItem('volunteer-list'));
+                renderCards();
+            }
+        }
+
+        function resetAgenda() {
+            if(confirm("Êtes-vous sûr de vouloir tout effacer ? (Tableau, Heures et Cartes)")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+
+</body>
+</html>
