@@ -7,133 +7,57 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            background-color: #f4f7f6;
-            color: #333;
+            margin: 20px; background-color: #f4f7f6; color: #333;
         }
         h1, h2 { color: #2c3e50; }
         
-        /* Section des contrôles et des cartes */
-        .top-section {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .controls-panel, .volunteers-panel {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+        .top-section { display: flex; gap: 40px; margin-bottom: 30px; flex-wrap: wrap; }
+        .controls-panel, .volunteers-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .controls-panel { flex: 1; min-width: 300px; }
         .volunteers-panel { flex: 2; min-width: 300px; }
 
-        input[type="text"] {
-            padding: 9px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-right: 5px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 5px 0;
-            transition: background-color 0.2s;
-        }
+        input[type="text"] { padding: 9px; border: 1px solid #ccc; border-radius: 5px; margin-right: 5px; }
+        button { padding: 10px 15px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px 0; transition: background-color 0.2s; }
         button:hover { background-color: #2980b9; }
-        
-        /* Boutons d'action spécifiques */
         button.danger { background-color: #e74c3c; margin-top: 30px; }
         button.danger:hover { background-color: #c0392b; }
-        button.success { background-color: #27ae60; margin-top: 15px; font-size: 1.1em;}
-        button.success:hover { background-color: #2ecc71; }
-
-        /* Style des cartes bénévoles */
-        #cards-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            min-height: 40px;
-            padding: 10px;
-            background-color: #fdfefe;
-            border: 2px dashed #bdc3c7;
-            border-radius: 5px;
-        }
-        .volunteer-card {
-            padding: 8px 15px;
-            background-color: #e67e22;
-            color: white;
-            border-radius: 20px;
-            cursor: grab;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            user-select: none;
-        }
-        .volunteer-card:active { cursor: grabbing; }
-
-        /* Style du tableau */
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            background-color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 15px;
-            text-align: center;
-        }
-        th { background-color: #2c3e50; color: white; }
-        tbody th { background-color: #ecf0f1; color: #333; font-weight: bold; text-align: left; }
         
-        /* Cellules où l'on peut déposer les cartes */
-        td.assignable {
-            transition: background-color 0.2s;
-            color: #d35400;
-            font-weight: bold;
-            min-width: 100px;
-        }
-        td.assignable.drag-over {
-            background-color: #fcf3cf;
-            border: 2px dashed #e67e22;
-        }
-        td.assignable:empty::before {
-            content: "Glisser ici";
-            color: #bdc3c7;
-            font-size: 0.85em;
-            font-weight: normal;
-        }
-        /* Curseur pour retirer un bénévole */
-        td.assignable:not(:empty) { cursor: pointer; }
-        td.assignable:not(:empty):hover::after {
-            content: " ✖";
-            color: #e74c3c;
-            font-size: 0.8em;
-        }
+        .action-buttons { display: flex; gap: 15px; margin-top: 15px; }
+        button.success { background-color: #27ae60; font-size: 1.1em;}
+        button.success:hover { background-color: #2ecc71; }
+        button.import { background-color: #8e44ad; font-size: 1.1em;}
+        button.import:hover { background-color: #9b59b6; }
 
-        /* Conteneurs du bas */
-        .bottom-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 20px;
-        }
+        .th-content { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .th-actions { display: flex; gap: 3px; }
+        .th-actions button { padding: 2px 6px; margin: 0; font-size: 0.8em; background-color: rgba(255,255,255,0.2); color: inherit; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
+        .th-actions button:hover { background-color: rgba(255,255,255,0.5); color: black;}
+        .th-actions button.btn-del:hover { background-color: #e74c3c; color: white; }
+        tbody th .th-content { flex-direction: row; justify-content: space-between; }
 
-        /* Compteur d'heures */
-        .hours-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            width: 400px;
-        }
+        #cards-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; min-height: 40px; padding: 10px; background-color: #fdfefe; border: 2px dashed #bdc3c7; border-radius: 5px; }
+        .volunteer-card { padding: 6px 12px; background-color: #e67e22; color: white; border-radius: 20px; cursor: grab; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2); user-select: none; display: flex; align-items: center; gap: 8px; }
+        .volunteer-card:active { cursor: grabbing; }
+        .card-actions { display: flex; gap: 3px; }
+        .card-actions span { cursor: pointer; font-size: 0.8em; background: rgba(255,255,255,0.2); padding: 3px 6px; border-radius: 50%; transition: 0.2s; }
+        .card-actions span:hover { background: rgba(255,255,255,0.6); color: black; }
+
+        table { border-collapse: collapse; width: 100%; background-color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: top; }
+        th { background-color: #2c3e50; color: white; }
+        tbody th { background-color: #ecf0f1; color: #333; font-weight: bold; text-align: left; min-width: 180px; vertical-align: middle;}
+        
+        td.assignable { transition: background-color 0.2s; min-width: 120px; }
+        td.assignable.drag-over { background-color: #fcf3cf; border: 2px dashed #e67e22; }
+        td.assignable:empty::before { content: "Glisser ici"; color: #bdc3c7; font-size: 0.85em; font-weight: normal; display: block; margin-top: 5px;}
+
+        .badge { display: inline-flex; align-items: center; gap: 5px; background-color: #f39c12; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.85em; margin: 3px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.15); transition: background-color 0.2s;}
+        .badge:hover { background-color: #e74c3c; }
+        .badge-x { font-size: 0.8em; opacity: 0.7; }
+        .badge:hover .badge-x { opacity: 1; color: white;}
+
+        .bottom-actions { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 20px; }
+        .hours-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 400px; }
         ul { list-style-type: none; padding: 0; }
         li { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
     </style>
@@ -156,8 +80,7 @@
                 <button onclick="createVolunteerCard()">Créer la carte</button>
                 <button onclick="clearVolunteerCards()" style="background-color: #7f8c8d; margin-left:10px;">Vider la liste</button>
             </div>
-            <div id="cards-container">
-                </div>
+            <div id="cards-container"></div>
         </div>
     </div>
 
@@ -165,25 +88,17 @@
         <thead>
             <tr id="header-row">
                 <th>Tâches \ Horaires</th>
-                <th>18h - 19h</th>
-                <th>19h - 20h</th>
             </tr>
         </thead>
         <tbody id="agenda-body">
-            <tr>
-                <th>Nourriture</th>
-                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
-                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
-            </tr>
-            <tr>
-                <th>Boisson</th>
-                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
-                <td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)" onclick="removeVolunteer(this)"></td>
-            </tr>
         </tbody>
     </table>
 
-    <button class="success" onclick="exportToCSV()">📥 Exporter en Excel (CSV)</button>
+    <div class="action-buttons">
+        <input type="file" id="csv-file" accept=".csv" style="display: none;" onchange="importCSV(event)">
+        <button class="import" onclick="document.getElementById('csv-file').click()">📤 Importer un planning (CSV)</button>
+        <button class="success" onclick="exportToCSV()">📥 Exporter en Excel (CSV)</button>
+    </div>
 
     <div class="bottom-actions">
         <div class="hours-container">
@@ -200,174 +115,164 @@
         let volunteerHours = {};
         let volunteerList = [];
 
-        // --- EXPORTATION CSV (EXCEL) ---
-        function exportToCSV() {
-            let csv = [];
-            // Ajout du BOM pour qu'Excel lise correctement les accents (UTF-8)
-            let csvString = "\uFEFF"; 
-
-            // 1. Récupération des en-têtes (Horaires)
-            let headerCols = document.querySelectorAll("#header-row th");
-            let rowData = [];
-            for (let j = 0; j < headerCols.length; j++) {
-                // On remplace les guillemets potentiels pour éviter les bugs Excel
-                let data = headerCols[j].innerText.replace(/"/g, '""');
-                rowData.push('"' + data + '"');
-            }
-            csv.push(rowData.join(";")); // Séparateur point-virgule pour Excel France
-
-            // 2. Récupération du corps du tableau (Tâches + Bénévoles)
-            let rows = document.querySelectorAll("#agenda-body tr");
-            for (let i = 0; i < rows.length; i++) {
-                let rowData = [];
-                
-                // La tâche (en-tête de ligne)
-                let th = rows[i].querySelector("th");
-                let thData = th.innerText.replace(/"/g, '""');
-                rowData.push('"' + thData + '"');
-
-                // Les cases (Bénévoles)
-                let cols = rows[i].querySelectorAll("td");
-                for (let j = 0; j < cols.length; j++) {
-                    // .textContent prend le texte brut (sans le "Glisser ici" généré en CSS)
-                    let data = cols[j].textContent.replace(/"/g, '""');
-                    rowData.push('"' + data + '"');
-                }
-                csv.push(rowData.join(";"));
-            }
-
-            // 3. Ajout du récapitulatif des heures à la fin du fichier
-            csv.push(""); // Ligne vide
-            csv.push('"BILAN DES HEURES"');
-            let volunteers = Object.keys(volunteerHours);
-            if (volunteers.length > 0) {
-                volunteers.sort().forEach(vol => {
-                    csv.push('"' + vol + '";"' + volunteerHours[vol] + ' heure(s)"');
-                });
-            } else {
-                csv.push('"Aucun bénévole"');
-            }
-
-            // 4. Assemblage et téléchargement
-            csvString += csv.join("\n");
-            let blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-            let link = document.createElement("a");
-            let url = URL.createObjectURL(blob);
-            
-            link.setAttribute("href", url);
-            link.setAttribute("download", "planning_benevoles.csv");
-            link.style.visibility = 'hidden';
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function createBadgeHTML(name) {
+            const safeName = name.replace(/'/g, "\\'"); 
+            return `<span class="badge" data-name="${name}" title="Cliquer pour retirer" onclick="removeAssignedVol(event, this, '${safeName}')">${name} <span class="badge-x">✖</span></span>`;
         }
 
-        // --- RESTE DU CODE (Inchangé) ---
-
-        function handleEnter(event) {
-            if (event.key === "Enter") createVolunteerCard();
-        }
+        function handleEnter(event) { if (event.key === "Enter") createVolunteerCard(); }
 
         function createVolunteerCard(name) {
             const volName = name || document.getElementById('new-vol-name').value.trim();
             if (!volName) return;
-
-            if (!volunteerList.includes(volName)) {
-                volunteerList.push(volName);
-            }
-            
+            if (volunteerList.includes(volName)) { alert("Ce bénévole existe déjà !"); return; }
+            volunteerList.push(volName);
             document.getElementById('new-vol-name').value = '';
-            renderCards();
-            saveData();
+            renderCards(); saveData();
         }
 
         function renderCards() {
             const container = document.getElementById('cards-container');
             container.innerHTML = ''; 
-
             volunteerList.forEach(vol => {
                 const card = document.createElement('div');
-                card.className = 'volunteer-card';
-                card.draggable = true;
-                card.textContent = vol;
+                card.className = 'volunteer-card'; card.draggable = true; 
+                const nameSpan = document.createElement('span'); nameSpan.textContent = vol;
+                const actions = document.createElement('div'); actions.className = 'card-actions';
+
+                const editBtn = document.createElement('span'); editBtn.innerHTML = '✏️'; editBtn.title = 'Renommer';
+                editBtn.onclick = function(e) { e.stopPropagation(); editVolunteer(vol); };
+
+                const delBtn = document.createElement('span'); delBtn.innerHTML = '✖'; delBtn.title = 'Supprimer';
+                delBtn.onclick = function(e) { e.stopPropagation(); deleteVolunteer(vol); };
+
+                actions.appendChild(editBtn); actions.appendChild(delBtn);
+                card.appendChild(nameSpan); card.appendChild(actions);
                 
-                card.ondragstart = function(event) {
-                    event.dataTransfer.setData("text/plain", vol);
-                };
-                
+                card.ondragstart = function(event) { event.dataTransfer.setData("text/plain", vol); };
                 container.appendChild(card);
             });
         }
 
-        function clearVolunteerCards() {
-            if(confirm("Effacer toutes les cartes de bénévoles ? (Le planning restera intact)")) {
-                volunteerList = [];
-                renderCards();
-                saveData();
+        function editVolunteer(oldName) {
+            const newName = prompt(`Renommer "${oldName}" en :`, oldName);
+            if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
+            const trimmedName = newName.trim();
+            if (volunteerList.includes(trimmedName)) { alert("Un bénévole porte déjà ce nom !"); return; }
+
+            const index = volunteerList.indexOf(oldName);
+            if (index !== -1) volunteerList[index] = trimmedName;
+
+            if (volunteerHours[oldName]) {
+                volunteerHours[trimmedName] = volunteerHours[oldName];
+                delete volunteerHours[oldName];
             }
+
+            document.querySelectorAll('#agenda-body .badge').forEach(badge => {
+                if (badge.dataset.name === oldName) {
+                    badge.outerHTML = createBadgeHTML(trimmedName);
+                }
+            });
+            renderCards(); updateHoursDisplay(); saveData();
         }
 
-        function allowDrop(event) {
-            event.preventDefault(); 
-            event.target.classList.add('drag-over'); 
-        }
-
-        function dragLeave(event) {
-            event.target.classList.remove('drag-over'); 
-        }
-
-        function dropVolunteer(event, cell) {
-            event.preventDefault();
-            cell.classList.remove('drag-over');
+        function deleteVolunteer(name) {
+            if(!confirm(`Supprimer la carte de ${name} ?\nS'il est déjà assigné, il sera également retiré du planning.`)) return;
+            volunteerList = volunteerList.filter(v => v !== name);
+            delete volunteerHours[name];
             
-            const newVolunteer = event.dataTransfer.getData("text/plain");
-            const currentVolunteer = cell.textContent;
+            document.querySelectorAll('#agenda-body .badge').forEach(badge => {
+                if (badge.dataset.name === name) badge.remove();
+            });
+            renderCards(); updateHoursDisplay(); saveData();
+        }
 
-            if (currentVolunteer && volunteerHours[currentVolunteer]) {
-                volunteerHours[currentVolunteer]--;
-                if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
+        function clearVolunteerCards() {
+            if(confirm("Effacer toutes les cartes ? (Le planning restera intact)")) { volunteerList = []; renderCards(); saveData(); }
+        }
+
+        function createColHeaderHTML(text) {
+            return `
+                <div class="th-content">
+                    <span class="header-text">${text}</span>
+                    <div class="th-actions">
+                        <button title="Déplacer à gauche" onclick="moveColLeft(this)">◀</button>
+                        <button title="Déplacer à droite" onclick="moveColRight(this)">▶</button>
+                        <button class="btn-del" title="Supprimer" onclick="deleteCol(this)">✖</button>
+                    </div>
+                </div>`;
+        }
+
+        function createRowHeaderHTML(text) {
+            return `
+                <div class="th-content">
+                    <span class="header-text">${text}</span>
+                    <div class="th-actions">
+                        <button title="Monter" onclick="moveRowUp(this)">▲</button>
+                        <button title="Descendre" onclick="moveRowDown(this)">▼</button>
+                        <button class="btn-del" title="Supprimer" onclick="deleteRow(this)">✖</button>
+                    </div>
+                </div>`;
+        }
+
+        function subtractHours(name) {
+            if (volunteerHours[name]) {
+                volunteerHours[name]--;
+                if (volunteerHours[name] <= 0) delete volunteerHours[name];
             }
+        }
 
-            cell.textContent = newVolunteer;
-            volunteerHours[newVolunteer] = (volunteerHours[newVolunteer] || 0) + 1;
+        function moveRowUp(btn) { const tr = btn.closest('tr'); if (tr.previousElementSibling) { tr.parentNode.insertBefore(tr, tr.previousElementSibling); saveData(); } }
+        function moveRowDown(btn) { const tr = btn.closest('tr'); if (tr.nextElementSibling) { tr.parentNode.insertBefore(tr.nextElementSibling, tr); saveData(); } }
+        
+        function deleteRow(btn) {
+            if(!confirm("Supprimer cette tâche ? (Les bénévoles assignés perdront ces heures)")) return;
+            const tr = btn.closest('tr');
+            tr.querySelectorAll('.badge').forEach(badge => { subtractHours(badge.dataset.name); });
+            tr.remove(); updateHoursDisplay(); saveData();
+        }
 
-            updateHoursDisplay();
+        function moveColLeft(btn) {
+            const th = btn.closest('th'); const tr = th.parentElement; const index = Array.from(tr.children).indexOf(th);
+            if (index <= 1) return; 
+            tr.insertBefore(th, tr.children[index - 1]);
+            document.querySelectorAll('#agenda-body tr').forEach(row => { row.insertBefore(row.children[index], row.children[index - 1]); });
             saveData();
         }
 
-        function removeVolunteer(cell) {
-            const currentVolunteer = cell.textContent;
-            if (!currentVolunteer) return;
+        function moveColRight(btn) {
+            const th = btn.closest('th'); const tr = th.parentElement; const index = Array.from(tr.children).indexOf(th);
+            if (index === tr.children.length - 1) return; 
+            tr.insertBefore(th.nextElementSibling, th);
+            document.querySelectorAll('#agenda-body tr').forEach(row => { row.insertBefore(row.children[index].nextElementSibling, row.children[index]); });
+            saveData();
+        }
 
-            if(confirm(`Retirer ${currentVolunteer} de cette case ?`)) {
-                if (volunteerHours[currentVolunteer]) {
-                    volunteerHours[currentVolunteer]--;
-                    if (volunteerHours[currentVolunteer] <= 0) delete volunteerHours[currentVolunteer];
+        function deleteCol(btn) {
+            if(!confirm("Supprimer cet horaire ? (Les bénévoles assignés perdront ces heures)")) return;
+            const th = btn.closest('th'); const index = Array.from(th.parentElement.children).indexOf(th);
+            document.querySelectorAll('#agenda-body tr').forEach(row => {
+                const cell = row.children[index];
+                if(cell) {
+                    cell.querySelectorAll('.badge').forEach(badge => subtractHours(badge.dataset.name));
+                    cell.remove();
                 }
-                cell.textContent = ""; 
-                updateHoursDisplay();
-                saveData();
-            }
+            });
+            th.remove(); updateHoursDisplay(); saveData();
         }
 
         function addTimeColumn() {
             const timeSlot = prompt("Entrez la nouvelle plage horaire (ex: 20h - 21h) :");
             if (!timeSlot) return; 
-
             const headerRow = document.getElementById("header-row");
             const newTh = document.createElement("th");
-            newTh.textContent = timeSlot;
-            headerRow.appendChild(newTh);
-
+            newTh.innerHTML = createColHeaderHTML(timeSlot); headerRow.appendChild(newTh);
             const body = document.getElementById("agenda-body");
             for (let row of body.rows) {
                 const newTd = document.createElement("td");
                 newTd.className = "assignable";
-                newTd.setAttribute('ondragover', 'allowDrop(event)');
-                newTd.setAttribute('ondragleave', 'dragLeave(event)');
+                newTd.setAttribute('ondragover', 'allowDrop(event)'); newTd.setAttribute('ondragleave', 'dragLeave(event)');
                 newTd.setAttribute('ondrop', 'dropVolunteer(event, this)');
-                newTd.setAttribute('onclick', 'removeVolunteer(this)');
                 row.appendChild(newTd);
             }
             saveData();
@@ -376,44 +281,217 @@
         function addTaskRow() {
             const taskName = prompt("Entrez la nouvelle tâche (ex: Distribution) :");
             if (!taskName) return; 
-
             const body = document.getElementById("agenda-body");
             const numCols = document.getElementById("header-row").children.length;
-
             const newRow = document.createElement("tr");
             const th = document.createElement("th");
-            th.textContent = taskName;
-            newRow.appendChild(th);
-
+            th.innerHTML = createRowHeaderHTML(taskName); newRow.appendChild(th);
             for (let i = 1; i < numCols; i++) {
-                const td = document.createElement("td");
-                td.className = "assignable";
-                td.setAttribute('ondragover', 'allowDrop(event)');
-                td.setAttribute('ondragleave', 'dragLeave(event)');
+                const td = document.createElement("td"); td.className = "assignable";
+                td.setAttribute('ondragover', 'allowDrop(event)'); td.setAttribute('ondragleave', 'dragLeave(event)');
                 td.setAttribute('ondrop', 'dropVolunteer(event, this)');
-                td.setAttribute('onclick', 'removeVolunteer(this)');
                 newRow.appendChild(td);
             }
-            body.appendChild(newRow);
-            saveData();
+            body.appendChild(newRow); saveData();
+        }
+
+        function allowDrop(event) { event.preventDefault(); event.target.classList.add('drag-over'); }
+        function dragLeave(event) { event.target.classList.remove('drag-over'); }
+
+        function dropVolunteer(event, cell) {
+            event.preventDefault(); cell.classList.remove('drag-over');
+            const newVolunteer = event.dataTransfer.getData("text/plain");
+            if (!volunteerList.includes(newVolunteer)) return; 
+            
+            const existingVols = Array.from(cell.querySelectorAll('.badge')).map(b => b.dataset.name);
+            if (existingVols.includes(newVolunteer)) return; 
+
+            cell.insertAdjacentHTML('beforeend', createBadgeHTML(newVolunteer));
+            volunteerHours[newVolunteer] = (volunteerHours[newVolunteer] || 0) + 1;
+            
+            updateHoursDisplay(); saveData();
+        }
+
+        function removeAssignedVol(event, badgeElem, name) {
+            event.stopPropagation(); 
+            if(confirm(`Retirer ${name} de cette tâche ?`)) {
+                subtractHours(name);
+                badgeElem.remove();
+                updateHoursDisplay(); saveData();
+            }
         }
 
         function updateHoursDisplay() {
-            const list = document.getElementById("volunteer-hours");
-            list.innerHTML = ""; 
-            
+            const list = document.getElementById("volunteer-hours"); list.innerHTML = ""; 
             const volunteers = Object.keys(volunteerHours);
-            if (volunteers.length === 0) {
-                list.innerHTML = "<li><em>Aucun bénévole assigné.</em></li>";
-                return;
-            }
-
+            if (volunteers.length === 0) { list.innerHTML = "<li><em>Aucun bénévole assigné.</em></li>"; return; }
             volunteers.sort().forEach(vol => {
                 const li = document.createElement("li");
                 li.innerHTML = `<span><strong>${vol}</strong></span> <span>${volunteerHours[vol]} heure(s)</span>`;
                 list.appendChild(li);
             });
         }
+
+        // --- EXPORTATION ---
+        function exportToCSV() {
+            let csv = []; 
+            let csvString = "\uFEFF"; 
+            
+            let headerCols = document.querySelectorAll("#header-row th");
+            let rowData = [];
+            for (let j = 0; j < headerCols.length; j++) {
+                let span = headerCols[j].querySelector('.header-text');
+                let text = span ? span.textContent : headerCols[j].textContent;
+                text = text.replace(/[\n\r]+/g, ' ').trim();
+                rowData.push('"' + text.replace(/"/g, '""') + '"');
+            }
+            csv.push(rowData.join(";"));
+            
+            let rows = document.querySelectorAll("#agenda-body tr");
+            for (let i = 0; i < rows.length; i++) {
+                let rowData = [];
+                let th = rows[i].querySelector("th");
+                let span = th.querySelector('.header-text');
+                let thText = span ? span.textContent : th.textContent;
+                thText = thText.replace(/[\n\r]+/g, ' ').trim();
+                rowData.push('"' + thText.replace(/"/g, '""') + '"');
+                
+                let cols = rows[i].querySelectorAll("td");
+                for (let j = 0; j < cols.length; j++) {
+                    let assigned = Array.from(cols[j].querySelectorAll('.badge')).map(b => b.dataset.name.trim()).join(", ");
+                    rowData.push('"' + assigned.replace(/"/g, '""') + '"'); 
+                }
+                csv.push(rowData.join(";"));
+            }
+            
+            csv.push(""); csv.push('"BILAN DES HEURES"');
+            let volunteers = Object.keys(volunteerHours);
+            if (volunteers.length > 0) { 
+                volunteers.sort().forEach(vol => { csv.push('"' + vol + '";"' + volunteerHours[vol] + ' heure(s)"'); });
+            } else { csv.push('"Aucun bénévole"'); }
+            
+            csvString += csv.join("\n");
+            let blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+            let link = document.createElement("a"); 
+            link.href = URL.createObjectURL(blob); 
+            link.download = "planning_benevoles.csv"; 
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- NOUVEAU : IMPORTATION CSV ---
+        
+        // Petit outil pour décoder correctement le format CSV avec les guillemets et points-virgules
+        function parseCSV(text) {
+            let lines = []; let currentLine = []; let currentVal = ""; let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"') {
+                    if (inQuotes && text[i+1] === '"') { currentVal += '"'; i++; } else { inQuotes = !inQuotes; }
+                } else if (char === ';' && !inQuotes) {
+                    currentLine.push(currentVal); currentVal = "";
+                } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                    if (char === '\r' && text[i+1] === '\n') i++; // Gère le format Windows (CRLF)
+                    currentLine.push(currentVal); lines.push(currentLine); currentLine = []; currentVal = "";
+                } else { currentVal += char; }
+            }
+            if (currentLine.length > 0 || currentVal !== "") { currentLine.push(currentVal); lines.push(currentLine); }
+            return lines;
+        }
+
+        function importCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let text = e.target.result;
+                if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1); // Retire le BOM d'Excel s'il y en a un
+                
+                const data = parseCSV(text);
+                if (data.length < 2) {
+                    alert("Le fichier CSV semble vide ou son format est invalide.");
+                    return;
+                }
+
+                if(!confirm("⚠️ Attention : L'importation de ce fichier va écraser votre planning actuel. Voulez-vous continuer ?")) {
+                    document.getElementById('csv-file').value = ""; // Réinitialise l'input
+                    return;
+                }
+
+                // Réinitialisation des données de base
+                volunteerHours = {};
+                volunteerList = [];
+                
+                const headerRow = document.getElementById('header-row');
+                const agendaBody = document.getElementById('agenda-body');
+                headerRow.innerHTML = '';
+                agendaBody.innerHTML = '';
+
+                // 1. Reconstruction des horaires (Ligne 1)
+                const headers = data[0];
+                const mainTh = document.createElement('th');
+                mainTh.textContent = headers[0] || "Tâches \\ Horaires";
+                headerRow.appendChild(mainTh);
+
+                for (let i = 1; i < headers.length; i++) {
+                    const th = document.createElement('th');
+                    th.innerHTML = createColHeaderHTML(headers[i]);
+                    headerRow.appendChild(th);
+                }
+
+                // 2. Reconstruction des tâches et bénévoles
+                for (let r = 1; r < data.length; r++) {
+                    const row = data[r];
+                    // Si on tombe sur la ligne vide ou sur le "BILAN DES HEURES", on arrête de lire (on ne lit pas le pied de page Excel)
+                    if (row.length === 0 || (row.length === 1 && row[0].trim() === "") || row[0] === "BILAN DES HEURES") {
+                        break;
+                    }
+
+                    const tr = document.createElement('tr');
+                    const th = document.createElement('th');
+                    th.innerHTML = createRowHeaderHTML(row[0]);
+                    tr.appendChild(th);
+
+                    for (let c = 1; c < headers.length; c++) {
+                        const td = document.createElement('td');
+                        td.className = "assignable";
+                        td.setAttribute('ondragover', 'allowDrop(event)'); 
+                        td.setAttribute('ondragleave', 'dragLeave(event)');
+                        td.setAttribute('ondrop', 'dropVolunteer(event, this)');
+                        
+                        const cellData = row[c];
+                        if (cellData && cellData.trim() !== "") {
+                            // On sépare les bénévoles s'ils sont plusieurs dans la case (ex: "Alice, Bob")
+                            const volunteersInCell = cellData.split(',').map(v => v.trim()).filter(v => v !== "");
+                            volunteersInCell.forEach(vol => {
+                                td.insertAdjacentHTML('beforeend', createBadgeHTML(vol));
+                                volunteerHours[vol] = (volunteerHours[vol] || 0) + 1; // Recalcule les heures
+                                
+                                // Recrée la carte du bénévole s'il n'est pas encore dans la liste
+                                if (!volunteerList.includes(vol)) {
+                                    volunteerList.push(vol);
+                                }
+                            });
+                        }
+                        tr.appendChild(td);
+                    }
+                    agendaBody.appendChild(tr);
+                }
+
+                renderCards();
+                updateHoursDisplay();
+                saveData();
+                document.getElementById('csv-file').value = ""; // Remet à zéro le bouton fichier pour un prochain import
+            };
+            
+            // Excel sauvegarde souvent avec l'encodage de l'ordinateur. UTF-8 limite la casse des accents.
+            reader.readAsText(file, 'UTF-8'); 
+        }
+
+        // --- SAUVEGARDE ET CHARGEMENT ---
 
         function saveData() {
             localStorage.setItem('agenda-header', document.getElementById('header-row').innerHTML);
@@ -422,31 +500,51 @@
             localStorage.setItem('volunteer-list', JSON.stringify(volunteerList));
         }
 
+        function upgradeOldData() {
+            document.querySelectorAll('#header-row th').forEach((th, i) => { if(i > 0 && !th.querySelector('.th-content')) th.innerHTML = createColHeaderHTML(th.innerText); });
+            document.querySelectorAll('#agenda-body th').forEach(th => { if(!th.querySelector('.th-content')) th.innerHTML = createRowHeaderHTML(th.innerText); });
+            
+            document.querySelectorAll('#agenda-body td.assignable').forEach(td => {
+                td.removeAttribute('onclick'); 
+                if (td.childNodes.length === 1 && td.childNodes[0].nodeType === 3) {
+                    const name = td.textContent.trim();
+                    if (name) { td.innerHTML = createBadgeHTML(name); } else { td.innerHTML = ""; }
+                }
+            });
+        }
+
         function loadData() {
-            if(localStorage.getItem('agenda-header')) {
-                document.getElementById('header-row').innerHTML = localStorage.getItem('agenda-header');
-            }
-            if(localStorage.getItem('agenda-body')) {
-                document.getElementById('agenda-body').innerHTML = localStorage.getItem('agenda-body');
-            }
-            if(localStorage.getItem('volunteer-hours')) {
-                volunteerHours = JSON.parse(localStorage.getItem('volunteer-hours'));
-                updateHoursDisplay();
-            }
-            if(localStorage.getItem('volunteer-list')) {
-                volunteerList = JSON.parse(localStorage.getItem('volunteer-list'));
-                renderCards();
-            }
+            if(localStorage.getItem('agenda-header')) document.getElementById('header-row').innerHTML = localStorage.getItem('agenda-header');
+            if(localStorage.getItem('agenda-body')) document.getElementById('agenda-body').innerHTML = localStorage.getItem('agenda-body');
+            
+            const headerRow = document.getElementById('header-row');
+            Array.from(headerRow.children).forEach(child => {
+                if (child.tagName.toLowerCase() !== 'th') {
+                    const th = document.createElement('th');
+                    headerRow.insertBefore(th, child);
+                    th.appendChild(child); 
+                }
+            });
+
+            upgradeOldData();
+            if(localStorage.getItem('volunteer-hours')) { volunteerHours = JSON.parse(localStorage.getItem('volunteer-hours')); updateHoursDisplay(); }
+            if(localStorage.getItem('volunteer-list')) { volunteerList = JSON.parse(localStorage.getItem('volunteer-list')); renderCards(); }
         }
 
         function resetAgenda() {
-            if(confirm("Êtes-vous sûr de vouloir tout effacer ? (Tableau, Heures et Cartes)")) {
-                localStorage.clear();
-                location.reload();
-            }
+            if(confirm("Êtes-vous sûr de vouloir tout effacer ? (Tableau, Heures et Cartes)")) { localStorage.clear(); location.reload(); }
         }
 
-        window.onload = loadData;
+        window.onload = function() {
+            loadData();
+            if(document.querySelectorAll('#header-row th').length === 1) {
+                document.getElementById('header-row').innerHTML = '<th>Tâches \\ Horaires</th><th>' + createColHeaderHTML('18h - 19h') + '</th><th>' + createColHeaderHTML('19h - 20h') + '</th>';
+                
+                const row1 = document.createElement('tr'); row1.innerHTML = `<th>${createRowHeaderHTML('Nourriture')}</th><td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)"></td><td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)"></td>`;
+                const row2 = document.createElement('tr'); row2.innerHTML = `<th>${createRowHeaderHTML('Boisson')}</th><td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)"></td><td class="assignable" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropVolunteer(event, this)"></td>`;
+                document.getElementById('agenda-body').appendChild(row1); document.getElementById('agenda-body').appendChild(row2);
+            }
+        };
     </script>
 
 </body>
